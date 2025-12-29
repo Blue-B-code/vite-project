@@ -1,4 +1,4 @@
-import "../app.css"
+import "../App.css"
 import { Link, Outlet } from "react-router-dom"
 import { useContext } from "react"
 import { AppContext } from "../context/AppContext"

@@ -3,18 +3,20 @@ import { AppContext } from "../context/AppContext"
 import { Link } from "react-router-dom"
 
 export default function Home() {
-    const { user } = useContext(AppContext)
+    const { user, token } = useContext(AppContext)
     const [posts, setPosts] = useState([])
     const [selectedPostId, setSelectedPostId] = useState(null)
     const [comments, setComments] = useState([])
-    const [likesCount, setLikesCount] = useState({})
     const [newComment, setNewComment] = useState("")
+    const [newPost, setNewPost] = useState("")
+    const [errors, setErrors] = useState({})
 
     // Récupérer tous les posts
     async function getPosts() {
         const res = await fetch("/api/posts")
         const data = await res.json()
         setPosts(data)
+        console.log(data)
     }
 
     // Récupérer les likes pour un post donné
@@ -23,7 +25,14 @@ export default function Home() {
             headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
         })
         const data = await res.json()
-        setLikesCount(prev => ({ ...prev, [postId]: data.likes_count }))
+        console.log(data)
+        setPosts(prev =>
+            prev.map(post =>
+                post.id === postId
+                    ? { ...post, likes_count: data.likes_count }
+                    : post
+            )
+        );
     }
 
     // Liker un post
@@ -66,25 +75,70 @@ export default function Home() {
         }
     }
 
+    function truncateAtWord(text, maxLength = 100) {
+        if (!text || typeof text !== "string") return "";
+    
+        const normalized = text
+            .trim()
+            .replace(/\s+/g, " ");
+    
+        if (normalized.length <= maxLength) {
+            return normalized;
+        }
+    
+        let truncated = normalized.slice(0, maxLength);
+        const lastSpaceIndex = truncated.lastIndexOf(" ");
+    
+        if (lastSpaceIndex > 0) {
+            truncated = truncated.slice(0, lastSpaceIndex);
+        }
+    
+        return `${truncated}...`;
+    }
+    
+    async function handleSubmitPost(e) {
+        e.preventDefault();
+    
+        const PostData = {
+            title: truncateAtWord(newPost, 25),
+            body: newPost
+        };
+        console.log(PostData)
+    
+        try {
+            const res = await fetch("/api/posts", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(PostData)
+            });
+    
+            const data = await res.json();
+            setNewPost("")
+            getPosts()
+    
+            if (!res.ok || data.errors) 
+                setErrors(data.errors || { general: "Erreur lors de la création du post" });
+        } catch {
+            setErrors({ general: "Erreur réseau" });
+        }
+    }    
+
     useEffect(() => {
         getPosts()
     }, [])
-
-    useEffect(() => {
-        posts.forEach(post => {
-            fetchLikes(post.id)
-        })
-    }, [posts])
 
     return (
         <div className="flex">
             {/* Contenu principal */}
             <div className="w-3/4 pr-4">
 
-                <form onSubmit={handleCommentSubmit} className="flex items-end gap-2 mb-4 bg-transparent px-3 py-2 ">
+                <form onSubmit={handleSubmitPost} className="flex items-end gap-2 mb-4 bg-transparent px-3 py-2 ">
                 <textarea
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
+                    value={newPost}
+                    onChange={(e) => setNewPost(e.target.value)}
                     placeholder={user ? `Alors, ${user.name}, quoi de neuf ?...` : "Connectez-vous pour publier un post..."}
                     rows={2}
                     className="flex-1 mx-3 resize-none bg-transparent text-gray-600 rounded-3xl placeholder-gray-400 overflow-hidden min-h-[32px] max-h-[120px] text-sm"
@@ -97,7 +151,7 @@ export default function Home() {
                 {/* Bouton d'envoi (flèche) */}
                 <button
                     type="submit"
-                    disabled={!newComment.trim()}
+                    disabled={!newPost.trim()}
                     className="text-gray-400 hover:text-white transition disabled:opacity-30 disabled:cursor-not-allowed pb-1"
                     title="Envoyer"
                 >
@@ -135,17 +189,13 @@ export default function Home() {
                                 </div>
                             </div>
                             <p className="break-words overflow-hidden">{post.body}</p>
-                            <div className="mt-2 text-sm text-gray-600 flex items-center gap-2">
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        handleLike(post.id)
-                                    }}
-                                    className="text-red-500 hover:scale-105 transition"
-                                >
-                                    ❤️
-                                </button>
-                                <span>{likesCount[post.id] ?? 0}</span>
+                            <div className="group mt-2 text-sm text-gray-600 flex items-center gap-2"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleLike(post.id)
+                                }}>
+                                <span className="group-hover:scale-200 transition">❤️</span>
+                                <span>{post.likes_count ?? 0}</span>
                             </div>
                         </div>
                     ))
@@ -169,7 +219,7 @@ export default function Home() {
                 <textarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder={user ? `${user.name}, laissez un commentaire...` : "Connectez-vous pour commenter..."}
+                    placeholder={user ? `${user.name}, Commentez...` : "Connectez-vous pour commenter..."}
                     rows={2}
                     className="flex-1 mx-3 resize-none bg-transparent text-gray-600 rounded-3xl placeholder-gray-400 outline-none border-none overflow-hidden min-h-[32px] max-h-[120px] text-sm"
                     onInput={(e) => {

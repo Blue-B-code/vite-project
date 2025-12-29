@@ -1,4 +1,4 @@
-import "./app.css"
+import "./App.css"
 import Layout from "./pages/Layout"
 import Home from "./pages/Home"
 import Login from "./pages/auth/login"
@@ -7,7 +7,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import { useContext } from "react"
 import { AppContext } from "./context/AppContext"
 import Create from "./pages/posts/Create"
-import Show from "./pages/posts/show"
+import Show from "./pages/posts/Show"
 import Update from "./pages/posts/Update"
 function App() {
     const {user} = useContext(AppContext)
