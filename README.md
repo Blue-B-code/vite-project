@@ -1,12 +1,42 @@
-# React + Vite
+# React Blog — Vite + Firebase
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A blog application built with **React 19** and **Vite**, styled with **Tailwind CSS**, and deployable to **Firebase Hosting**.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Auth**: register / login pages with an app-wide auth context (`AppContext`).
+- **Posts**: create, view and update posts (`react-router` routes).
+- **Layout**: shared app layout and home page.
+- **CI**: GitHub Actions workflow that installs dependencies and builds the project on push/PR to `main`.
 
-## Expanding the ESLint configuration
+## Tech stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- React 19, Vite, React Router 7
+- Tailwind CSS 4
+- Firebase Hosting (`firebase.json`, `.firebaserc`)
+- GitHub Actions
+
+## Getting started
+
+```bash
+npm install
+npm run dev
+```
+
+Build for production:
+
+```bash
+npm run build
+npm run preview
+```
+
+Deploy to Firebase Hosting (requires a Firebase project):
+
+```bash
+firebase login
+firebase deploy
+```
+
+## License
+
+MIT
